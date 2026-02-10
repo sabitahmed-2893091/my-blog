@@ -1,52 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>My Personal Blog</title>
+    <title>My Live Blog</title>
     <style>
-        body { font-family: 'Georgia', serif; background: #f9f9f9; color: #333; margin: 0; }
-        header { background: #333; color: white; padding: 2rem; text-align: center; }
-        .container { max-width: 800px; margin: 20px auto; padding: 0 20px; }
-        .post { background: white; padding: 30px; margin-bottom: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .post img { max-width: 100%; border-radius: 5px; margin-top: 15px; }
-        .post h2 { margin-top: 0; color: #2c3e50; }
-        .date { font-size: 0.8rem; color: #888; }
-        .no-posts { text-align: center; color: #999; margin-top: 50px; }
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; display: flex; }
+        #posts { flex: 3; padding: 20px; }
+        #gallery { flex: 1; background: #ddd; padding: 10px; min-height: 100vh; border-left: 2px solid #ccc; }
+        .post { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        img { max-width: 100%; border-radius: 5px; margin-top: 10px; }
     </style>
 </head>
 <body>
+    <div id="posts"><h1>Loading Posts...</h1></div>
+    <div id="gallery"><h3>Gallery</h3></div>
 
-<header>
-    <h1>The Daily Insight</h1>
-    <p>Welcome to my thoughts and files</p>
-</header>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-<div class="container" id="blogContainer">
-    </div>
+        // Your specific config from image_e613f9.png
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgQk6HCCq4nfZ2FSCUi-rf7zmIYx8Po0M",
+            authDomain: "my-blog-163c9.firebaseapp.com",
+            projectId: "my-blog-163c9",
+            storageBucket: "my-blog-163c9.firebasestorage.app",
+            messagingSenderId: "536495195147",
+            appId: "1:536495195147:web:38ce000f9eb7507b13f30e",
+            measurementId: "G-2057Z8758B"
+        };
 
-<script>
-    const container = document.getElementById('blogContainer');
-    const posts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    if (posts.length === 0) {
-        container.innerHTML = '<p class="no-posts">No blog posts yet. Go to the Admin page to write one!</p>';
-    } else {
-        posts.forEach(post => {
-            const postElement = document.createElement('div');
-            postElement.className = 'post';
-            
-            let imageHtml = post.image ? `<img src="${post.image}" alt="Blog Image">` : '';
-            
-            postElement.innerHTML = `
-                <span class="date">${post.date}</span>
-                <h2>${post.title}</h2>
-                <p>${post.content.replace(/\n/g, '<br>')}</p>
-                ${imageHtml}
-            `;
-            container.appendChild(postElement);
+        const q = query(collection(db, "posts"), orderBy("time", "desc"));
+        onSnapshot(q, (snap) => {
+            const postDiv = document.getElementById('posts');
+            const galleryDiv = document.getElementById('gallery');
+            postDiv.innerHTML = "<h1>Latest Posts</h1>";
+            galleryDiv.innerHTML = "<h3>Gallery</h3>";
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                postDiv.innerHTML += `
+                    <div class="post">
+                        <h2>${data.title}</h2>
+                        <p>${data.content}</p>
+                        ${data.image ? `<img src="${data.image}">` : ''}
+                    </div>`;
+                if(data.image) {
+                    galleryDiv.innerHTML += `<img src="${data.image}" style="width:100%; margin-bottom:10px;">`;
+                }
+            });
         });
-    }
-</script>
-
+    </script>
 </body>
 </html>
